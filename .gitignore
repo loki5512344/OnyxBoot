@@ -1,0 +1,4 @@
+bootloader.elf
+bootloader.bin
+*.o
+*.d
