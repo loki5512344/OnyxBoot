@@ -23,6 +23,18 @@ extern "C" __attribute__((used)) void boot_main(uint64_t fdt_addr) {
     uart.init();
     const char* model = fdt_get_model((const void*)fdt_addr, "unknown");
 
+    uart.puts("     ███████\n");
+    uart.puts("  ███░░░░░███\n");
+    uart.puts(" ███     ░░███ ████████   █████ ████ █████ █████\n");
+    uart.puts("░███      ░███░░███░░███ ░░███ ░███ ░░███ ░░███\n");
+    uart.puts("░███      ░███ ░███ ░███  ░███ ░███  ░░░█████░\n");
+    uart.puts("░░███     ███  ░███ ░███  ░███ ░███   ███░░░███\n");
+    uart.puts(" ░░░███████░   ████ █████ ░░███████  █████ █████\n");
+    uart.puts("   ░░░░░░░    ░░░░ ░░░░░   ░░░░░███ ░░░░░ ░░░░░\n");
+    uart.puts("                           ███ ░███\n");
+    uart.puts("                          ░░██████\n");
+    uart.puts("                           ░░░░░░\n");
+
     uart.puts("OnyxBoot v0.4 [");
     uart.puts(model);
     uart.puts("]\n");
