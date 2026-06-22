@@ -1,4 +1,4 @@
-extern "C" void _start(void) {
+void _start(void) {
     volatile unsigned char* uart = (unsigned char*)0x10000000;
     const char* msg = "Hello from test kernel!\n";
     uart[3] = 0x03;
