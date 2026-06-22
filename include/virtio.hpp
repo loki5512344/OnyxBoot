@@ -33,34 +33,31 @@ struct __attribute__((packed)) virtio_blk_req {
     uint64_t sector;
 };
 
+struct __attribute__((packed)) alignas(16) VirtQueue {
+    virtio_desc desc[VIRTIO_QUEUE_SIZE];
+    virtio_avail avail;
+    uint16_t used_event;
+    uint8_t _pad[10];
+    virtio_used used;
+};
+
+alignas(4096) static VirtQueue g_vq;
+
 struct VirtIOBlock {
     volatile uint32_t* regs;
-    uint64_t phys_base;
+    bool legacy;
     uint16_t last_used_idx;
-
-    alignas(16) virtio_desc desc_tbl[VIRTIO_QUEUE_SIZE];
-    virtio_avail avail;
-    virtio_used used;
 
     VirtIOBlock(uint64_t base)
         : regs((volatile uint32_t*)base)
-        , phys_base(base)
+        , legacy(false)
         , last_used_idx(0) {
-        for (int i = 0; i < VIRTIO_QUEUE_SIZE; i++) {
-            desc_tbl[i].addr = 0;
-            desc_tbl[i].len = 0;
-            desc_tbl[i].flags = 0;
-            desc_tbl[i].next = 0;
-        }
-        avail.flags = 0;
-        avail.idx = 0;
-        for (int i = 0; i < VIRTIO_QUEUE_SIZE; i++) {
-            avail.ring[i] = 0;
-            used.ring[i].id = 0;
-            used.ring[i].len = 0;
-        }
-        used.flags = 0;
-        used.idx = 0;
+        for (int i = 0; i < VIRTIO_QUEUE_SIZE; i++)
+            g_vq.desc[i].addr = g_vq.desc[i].len = g_vq.desc[i].flags = g_vq.desc[i].next = 0;
+        g_vq.avail.flags = g_vq.avail.idx = 0;
+        for (int i = 0; i < VIRTIO_QUEUE_SIZE; i++)
+            g_vq.avail.ring[i] = g_vq.used.ring[i].id = g_vq.used.ring[i].len = 0;
+        g_vq.used.flags = g_vq.used.idx = 0;
     }
 
     void write_reg(uint32_t off, uint32_t val) {
@@ -74,10 +71,12 @@ struct VirtIOBlock {
     bool probe() {
         if (read_reg(0x000) != 0x74726976)
             return false;
-        if (read_reg(0x004) != 2)
+        uint32_t ver = read_reg(0x004);
+        if (ver != 1 && ver != 2)
             return false;
         if (read_reg(0x008) != 2)
             return false;
+        legacy = (ver == 1);
 
         write_reg(0x070, 0);
         write_reg(0x070, 1);
@@ -100,15 +99,38 @@ struct VirtIOBlock {
         if (!(read_reg(0x070) & 8))
             return false;
 
+        if (legacy)
+            return setup_queue_legacy();
+        else
+            return setup_queue_modern();
+    }
+
+    bool setup_queue_legacy() {
+        write_reg(0x028, 4096);
+        write_reg(0x030, 0);
+        uint32_t max = read_reg(0x034);
+        if (max < VIRTIO_QUEUE_SIZE)
+            return false;
+        write_reg(0x038, VIRTIO_QUEUE_SIZE);
+        write_reg(0x03C, 16);
+
+        uint64_t pa = (uint64_t)(uintptr_t)&g_vq;
+        write_reg(0x040, (uint32_t)(pa >> 12));
+
+        write_reg(0x070, 4);
+        return true;
+    }
+
+    bool setup_queue_modern() {
         write_reg(0x030, 0);
         uint32_t max = read_reg(0x034);
         if (max < VIRTIO_QUEUE_SIZE)
             return false;
         write_reg(0x038, VIRTIO_QUEUE_SIZE);
 
-        uint64_t desc_pa = (uint64_t)(uintptr_t)desc_tbl;
-        uint64_t avail_pa = (uint64_t)(uintptr_t)&avail;
-        uint64_t used_pa = (uint64_t)(uintptr_t)&used;
+        uint64_t desc_pa = (uint64_t)(uintptr_t)g_vq.desc;
+        uint64_t avail_pa = (uint64_t)(uintptr_t)&g_vq.avail;
+        uint64_t used_pa = (uint64_t)(uintptr_t)&g_vq.used;
 
         write_reg(0x080, (uint32_t)(desc_pa));
         write_reg(0x084, (uint32_t)(desc_pa >> 32));
@@ -120,7 +142,6 @@ struct VirtIOBlock {
         write_reg(0x03C, 1);
 
         write_reg(0x070, 4);
-
         return true;
     }
 
@@ -131,36 +152,36 @@ struct VirtIOBlock {
         hdr.sector = lba;
         uint8_t status = 0xFF;
 
-        uint16_t desc_idx = avail.idx % VIRTIO_QUEUE_SIZE;
+        uint16_t desc_idx = g_vq.avail.idx % VIRTIO_QUEUE_SIZE;
 
-        desc_tbl[desc_idx].addr = (uint64_t)(uintptr_t)&hdr;
-        desc_tbl[desc_idx].len = 16;
-        desc_tbl[desc_idx].flags = 1;
-        desc_tbl[desc_idx].next = (desc_idx + 1) % VIRTIO_QUEUE_SIZE;
+        g_vq.desc[desc_idx].addr = (uint64_t)(uintptr_t)&hdr;
+        g_vq.desc[desc_idx].len = 16;
+        g_vq.desc[desc_idx].flags = 1;
+        g_vq.desc[desc_idx].next = (desc_idx + 1) % VIRTIO_QUEUE_SIZE;
 
         uint16_t d1 = (desc_idx + 1) % VIRTIO_QUEUE_SIZE;
-        desc_tbl[d1].addr = (uint64_t)(uintptr_t)buf;
-        desc_tbl[d1].len = 512;
-        desc_tbl[d1].flags = 3;
-        desc_tbl[d1].next = (desc_idx + 2) % VIRTIO_QUEUE_SIZE;
+        g_vq.desc[d1].addr = (uint64_t)(uintptr_t)buf;
+        g_vq.desc[d1].len = 512;
+        g_vq.desc[d1].flags = 3;
+        g_vq.desc[d1].next = (desc_idx + 2) % VIRTIO_QUEUE_SIZE;
 
         uint16_t d2 = (desc_idx + 2) % VIRTIO_QUEUE_SIZE;
-        desc_tbl[d2].addr = (uint64_t)(uintptr_t)&status;
-        desc_tbl[d2].len = 1;
-        desc_tbl[d2].flags = 2;
+        g_vq.desc[d2].addr = (uint64_t)(uintptr_t)&status;
+        g_vq.desc[d2].len = 1;
+        g_vq.desc[d2].flags = 2;
 
         __sync_synchronize();
 
-        avail.ring[avail.idx % VIRTIO_QUEUE_SIZE] = desc_idx;
+        g_vq.avail.ring[g_vq.avail.idx % VIRTIO_QUEUE_SIZE] = desc_idx;
         __sync_synchronize();
-        avail.idx++;
+        g_vq.avail.idx++;
         __sync_synchronize();
 
-        write_reg(0x040, 0);
+        write_reg(legacy ? 0x050 : 0x040, 0);
 
-        while (used.idx == last_used_idx)
+        while (g_vq.used.idx == last_used_idx)
             __sync_synchronize();
-        last_used_idx = used.idx;
+        last_used_idx = g_vq.used.idx;
 
         return status == 0;
     }

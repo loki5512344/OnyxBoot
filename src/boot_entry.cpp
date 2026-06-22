@@ -9,7 +9,7 @@ extern uint8_t _stack_end[];
 extern "C" __attribute__((naked, section(".text.boot")))
 void _start() {
     asm volatile(
-        "csrr t0, mhartid\n"
+        "mv t0, a0\n"
         "bnez t0, 1f\n"
         "mv s0, a1\n"
         "la t0, _sbss\n"

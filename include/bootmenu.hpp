@@ -40,9 +40,17 @@ static inline int boot_menu(UART& uart, BootDevice* devs, int ndevs) {
     uart.putchar('0' + ndevs - 1);
     uart.puts(", or enter for auto): ");
 
-    char c = uart.getchar();
-    uart.putchar(c);
-    uart.putchar('\n');
+    char c = 0;
+    for (volatile int timeout = 0; timeout < 20000000; timeout++) {
+        if (/* data ready */
+            (uart.regs[5 << uart.shift] & 0x01))
+        {
+            c = (char)uart.regs[0 << uart.shift];
+            uart.putchar(c);
+            uart.putchar('\n');
+            break;
+        }
+    }
 
     if (c >= '0' && c <= '9') {
         int sel = c - '0';

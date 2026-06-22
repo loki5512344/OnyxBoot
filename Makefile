@@ -1,4 +1,4 @@
-CROSS = riscv64-unknown-elf
+CROSS ?= riscv64-unknown-elf
 CXX = $(CROSS)-g++
 OBJCOPY = $(CROSS)-objcopy
 

@@ -36,7 +36,7 @@ mem_out:
 
 static inline uart_info fdt_find_uart(const void* blob) {
     fdt_ctx ctx;
-    if (fdt_init(blob, &ctx) < 0) return {0x10000000ULL, 10};
+    if (fdt_init(blob, &ctx) < 0) return {0x10000000ULL, 10, 0};
 
     const char* nn;
     while ((nn = fdt_begin_node(&ctx)) != (const char*)-1) {
@@ -44,6 +44,7 @@ static inline uart_info fdt_find_uart(const void* blob) {
         int is_uart = 0, have_reg = 0;
         uint64_t base = 0;
         uint32_t irq = 10;
+        uint32_t reg_shift = 0;
         fdt_prop p;
 
         while (int r = fdt_next_prop(&ctx, &p)) {
@@ -55,15 +56,17 @@ static inline uart_info fdt_find_uart(const void* blob) {
                 have_reg = 1;
             } else if (fdt_str_eq(p.name, "interrupts")) {
                 irq = (uint32_t)be32((const uint32_t*)p.val);
+            } else if (fdt_str_eq(p.name, "reg-shift") && p.len == 4) {
+                reg_shift = be32((const uint32_t*)p.val);
             } else if (fdt_str_eq(p.name, "#address-cells") && p.len == 4)
                 ctx.addr_cells[ctx.depth] = (int)be32((const uint32_t*)p.val);
             else if (fdt_str_eq(p.name, "#size-cells") && p.len == 4)
                 ctx.size_cells[ctx.depth] = (int)be32((const uint32_t*)p.val);
         }
-        if (is_uart && have_reg) return {base, irq};
+        if (is_uart && have_reg) return {base, irq, reg_shift};
     }
 uart_out:
-    return {0x10000000ULL, 10};
+    return {0x10000000ULL, 10, 0};
 }
 
 static inline int fdt_find_mmio(const void* blob, mmio_dev* out, int max, const char* compat) {
@@ -82,19 +85,7 @@ static inline int fdt_find_mmio(const void* blob, mmio_dev* out, int max, const 
         while (int r = fdt_next_prop(&ctx, &p)) {
             if (r < 0) goto mmio_out;
             if (fdt_str_eq(p.name, "compatible")) {
-                const char* c = compat;
-                while (*c) {
-                    const char* end = c;
-                    while (*end && *end != '|') end++;
-                    uint32_t clen = (uint32_t)(end - c);
-                    if (clen == p.len) {
-                        int eq = 1;
-                        for (uint32_t i = 0; i < clen; i++)
-                            if ((char)p.val[i] != c[i]) { eq = 0; break; }
-                        if (eq) { match = 1; break; }
-                    }
-                    c = *end ? end + 1 : end;
-                }
+                if (fdt_compat_match(p.val, p.len, compat)) match = 1;
             } else if (fdt_str_eq(p.name, "reg")) {
                 fdt_read_reg(&ctx, d, p.val, &base, (uint64_t*)0);
                 have_reg = 1;
@@ -113,6 +104,19 @@ static inline int fdt_find_mmio(const void* blob, mmio_dev* out, int max, const 
     }
 mmio_out:
     return found;
+}
+
+static inline const char* fdt_get_model(const void* blob, const char* fallback) {
+    fdt_ctx ctx;
+    if (fdt_init(blob, &ctx) < 0) return fallback;
+    const char* nn = fdt_begin_node(&ctx);
+    if (nn == (const char*)-1) return fallback;
+    fdt_prop p;
+    while (int r = fdt_next_prop(&ctx, &p)) {
+        if (r < 0) return fallback;
+        if (fdt_str_eq(p.name, "model")) return (const char*)p.val;
+    }
+    return fallback;
 }
 
 static inline int fdt_find_virtio(const void* blob, mmio_dev* out, int max) {

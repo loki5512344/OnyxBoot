@@ -2,3 +2,6 @@ bootloader.elf
 bootloader.bin
 *.o
 *.d
+test/kernel.elf
+test/kernel.bin
+test/test.img

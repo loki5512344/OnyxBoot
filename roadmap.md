@@ -27,13 +27,7 @@
 - [ ] Свой образ диска (genimage или скрипт)
 - [ ] Поддержка 9P (VirtIO filesystem) для отладки
 - [ ] Debug UART (вывод FDT, регистров)
-- [ ] CI сборка (GitHub Actions, два таргета)
-
-## v0.5 - SlipperBoot standalone
-- [ ] Свой образ диска (genimage или скрипт)
-- [ ] Поддержка 9P (VirtIO filesystem) для отладки
-- [ ] Debug UART (вывод FDT, регистров)
-- [ ] CI сборка (GitHub Actions, два таргета)
+- [ ] CI сборка (GitHub Actions)
 
 ## v1.0 - Релиз
 - [ ] Полная документация

@@ -3,7 +3,7 @@
 
 static inline uint32_t bswap32(uint32_t x) {
     return ((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) |
-           ((x & 0x00FF0000) >> 8)  | ((x & 0xFF000000) >> 24);
+        ((x & 0x00FF0000) >> 8)  | ((x & 0xFF000000) >> 24);
 }
 
 static inline uint32_t be32(const uint32_t* p) { return bswap32(*p); }
@@ -12,7 +12,7 @@ static inline uint32_t fdt_rd32(const uint8_t* base, uint32_t off) {
 }
 
 struct mem_info { uint64_t base; uint64_t size; };
-struct uart_info { uint64_t base; uint32_t irq; };
+struct uart_info { uint64_t base; uint32_t irq; uint32_t reg_shift; };
 struct mmio_dev { uint64_t base; uint32_t irq; };
 
 static inline bool fdt_str_eq(const char* a, const char* b) {
