@@ -27,8 +27,10 @@ SECTIONS
     } :rw
 
     .bss : {
+        . = ALIGN(4);
         _sbss = .;
         *(.bss .bss.*)
+        . = ALIGN(4);
         _ebss = .;
     } :rw
 

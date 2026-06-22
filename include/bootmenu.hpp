@@ -42,10 +42,8 @@ static inline int boot_menu(UART& uart, BootDevice* devs, int ndevs) {
 
     char c = 0;
     for (volatile int timeout = 0; timeout < 20000000; timeout++) {
-        if (/* data ready */
-            (uart.regs[5 << uart.shift] & 0x01))
-        {
-            c = (char)uart.regs[0 << uart.shift];
+        if (uart.data_ready()) {
+            c = uart.read_char();
             uart.putchar(c);
             uart.putchar('\n');
             break;

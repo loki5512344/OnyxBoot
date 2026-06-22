@@ -5,3 +5,4 @@ bootloader.bin
 test/kernel.elf
 test/kernel.bin
 test/test.img
+slipperboot.bin

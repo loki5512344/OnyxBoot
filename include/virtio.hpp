@@ -41,7 +41,7 @@ struct __attribute__((packed)) alignas(16) VirtQueue {
     virtio_used used;
 };
 
-alignas(4096) static VirtQueue g_vq;
+alignas(4096) extern VirtQueue g_vq;
 
 struct VirtIOBlock {
     volatile uint32_t* regs;

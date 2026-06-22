@@ -1,6 +1,12 @@
 #pragma once
 #include <cstdint>
 
+#ifdef DEBUG
+#define debug_puts(u, s) (u).puts(s)
+#else
+#define debug_puts(u, s)
+#endif
+
 struct UART {
     volatile uint8_t* regs;
     uint32_t shift;
@@ -13,22 +19,22 @@ struct UART {
         regs[1 << shift] = 0x01;
     }
 
+    bool data_ready() { return regs[5 << shift] & 0x01; }
+    char read_char() { return (char)regs[0 << shift]; }
+    bool tx_ready() { return regs[5 << shift] & 0x20; }
+
     void putchar(char c) {
-        if (c == '\n')
-            putchar('\r');
-        while (!(regs[5 << shift] & 0x20))
-            ;
+        if (c == '\n') putchar('\r');
+        while (!tx_ready()) ;
         regs[0 << shift] = (uint8_t)c;
     }
 
     void puts(const char* s) {
-        while (*s)
-            putchar(*s++);
+        while (*s) putchar(*s++);
     }
 
     char getchar() {
-        while (!(regs[5 << shift] & 0x01))
-            ;
-        return (char)regs[0 << shift];
+        while (!data_ready()) ;
+        return read_char();
     }
 };

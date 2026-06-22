@@ -1,12 +1,19 @@
-CROSS ?= riscv64-unknown-elf
+CROSS ?= riscv64-elf
 CXX = $(CROSS)-g++
 OBJCOPY = $(CROSS)-objcopy
 
-CXXFLAGS = -march=rv64gc -mabi=lp64d -mcmodel=medany -ffreestanding -nostdlib -O2 -Wall -Wextra \
-           -fno-exceptions -fno-rtti -Iinclude
-LDFLAGS = -T linker.ld -nostdlib
+CXXFLAGS = -march=rv64gc -mabi=lp64d -mcmodel=medany \
+    -Os -flto \
+    -ffunction-sections -fdata-sections \
+    -fno-exceptions -fno-rtti -fno-threadsafe-statics \
+    -fno-use-cxa-atexit \
+    -fomit-frame-pointer -fno-ident -g0 \
+    -ffreestanding -nostdlib -Iinclude -Wall -Wextra
 
-SRCS = src/boot_entry.cpp src/boot_main.cpp
+LDFLAGS = -T linker.ld -nostdlib \
+    -Wl,--gc-sections -Wl,--strip-all -Wl,-n
+
+SRCS = src/boot_entry.cpp src/boot_main.cpp fs/fat.cpp fs/ext4.cpp
 
 all: bootloader.bin
 
@@ -19,4 +26,7 @@ bootloader.bin: bootloader.elf
 clean:
 	rm -f bootloader.elf bootloader.bin
 
-.PHONY: all clean
+test:
+	./test/run_qemu.sh
+
+.PHONY: all clean test
