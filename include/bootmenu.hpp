@@ -16,7 +16,7 @@ struct BootDevice {
 };
 
 static inline int boot_menu(UART& uart, BootDevice* devs, int ndevs) {
-    uart.puts("\nSlipperBoot boot menu\n");
+    uart.puts("\nOnyxBoot boot menu\n");
     uart.puts("--------------------\n");
 
     for (int i = 0; i < ndevs; i++) {

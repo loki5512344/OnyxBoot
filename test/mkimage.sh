@@ -7,7 +7,7 @@ TOP_DIR="$(dirname "$TEST_DIR")"
 if command -v genimage >/dev/null 2>&1; then
     genimage --config "$TEST_DIR/genimage.cfg" \
              --rootpath / \
-             --tmppath /tmp/genimage-slipperboot \
+             --tmppath /tmp/genimage-onyxboot \
              --inputpath "$TEST_DIR" \
              --outputpath "$TEST_DIR"
 else

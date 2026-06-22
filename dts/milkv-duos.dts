@@ -1,4 +1,4 @@
-// Milk-V Duo S (Sophgo SG2000) — minimal FDT for SlipperBoot
+// Milk-V Duo S (Sophgo SG2000) — minimal FDT for OnyxBoot
 /dts-v1/;
 
 / {

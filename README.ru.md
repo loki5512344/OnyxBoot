@@ -5,17 +5,17 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0-red" alt="GPL-3.0">
 </p>
 
-<h1 align="center">SlipperBoot</h1>
+<h1 align="center">OnyxBoot</h1>
 <p align="center"><em>Минималистичный RISC-V 64-bit загрузчик на голом C++</em></p>
 
 ----
 
-SlipperBoot - крошечный bare-metal загрузчик для RISC-V 64-bit (rv64gc).
+OnyxBoot - крошечный bare-metal загрузчик для RISC-V 64-bit (rv64gc).
 Находит железо через FDT (device tree из регистра a1), читает kernel.elf
 с VirtIO или SDHCI, парсит ELF64 и прыгает в точку входа. ~9.5 КБ бинарник,
 ноль зависимостей времени выполнения.
 
-Загрузчик первой ступени для [SlipperOS](https://github.com/anomalyco/SlipperOS).
+Загрузчик первой ступени для [OnyxOS](https://github.com/anomalyco/OnyxOS).
 
 ----
 
@@ -100,9 +100,9 @@ $ bash test/run_qemu.sh
 VirtIO block. Ожидаемый вывод:
 
 ```
-SlipperBoot v0.4 [riscv-virtio,qemu]
+OnyxBoot v0.4 [riscv-virtio,qemu]
 
-SlipperBoot boot menu
+OnyxBoot boot menu
 --------------------
   0: VirtIO @ 0x0000000010008000
 --------------------

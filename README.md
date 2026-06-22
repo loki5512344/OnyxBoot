@@ -6,17 +6,17 @@
   <a href="README.ru.md"><img src="https://img.shields.io/badge/ru_readme-blue" alt="ru_readme"></a>
 </p>
 
-<h1 align="center">SlipperBoot</h1>
+<h1 align="center">OnyxBoot</h1>
 <p align="center"><em>Minimalist RISC-V 64-bit bootloader written in freestanding C++</em></p>
 
 ----
 
-SlipperBoot - tiny bare-metal bootloader for RISC-V 64-bit (rv64gc).
+OnyxBoot - tiny bare-metal bootloader for RISC-V 64-bit (rv64gc).
 Discovers hardware via FDT (device tree from a1 register), reads kernel.elf
 from VirtIO or SDHCI, parses ELF64, and jumps to entry point. ~9.5 KB binary,
 zero runtime dependencies.
 
-First-stage loader for [SlipperOS](https://github.com/anomalyco/SlipperOS).
+First-stage loader for [OnyxOS](https://github.com/anomalyco/OnyxOS).
 
 ----
 
@@ -101,9 +101,9 @@ Creates 4MB disk image with kernel.elf at sector 0, runs QEMU with VirtIO block.
 Expected output:
 
 ```
-SlipperBoot v0.4 [riscv-virtio,qemu]
+OnyxBoot v0.4 [riscv-virtio,qemu]
 
-SlipperBoot boot menu
+OnyxBoot boot menu
 --------------------
   0: VirtIO @ 0x0000000010008000
 --------------------
