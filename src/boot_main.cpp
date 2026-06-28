@@ -79,7 +79,7 @@ extern "C" __attribute__((used)) void boot_main(uint64_t fdt_addr) {
     mem_info dram = fdt_find_memory((const void*)fdt_addr);
     uint32_t max_size = 4 * 1024 * 1024;
     if (dram.size < max_size + 0x10000) max_size = (uint32_t)(dram.size - 0x10000);
-    uint64_t kernel_buf_addr = (dram.base + dram.size - max_size) & ~(uint64_t)0xFFF;
+    uint64_t kernel_buf_addr = 0x80400000;
     uint8_t* kernel_buf = (uint8_t*)kernel_buf_addr;
     uint32_t kernel_size = 0;
     bool ok = false;
